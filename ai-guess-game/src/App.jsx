@@ -1,12 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import "./styles/app.css";
+import StartScreen from "./components/StartScreen";
+import GameBoard from "./components/GameBoard";
+import ResultScreen from "./components/ResultScreen";
 
-function App() {
+export default function App() {
+  const [stage, setStage] = useState("start"); // start | play | result
+  const [lastResult, setLastResult] = useState(null); // { correct: boolean, answerIdx: number }
+
   return (
-    <div className="App">
-      
+    <div className="app">
+      {stage === "start" && (
+        <StartScreen onStart={() => setStage("play")} />
+      )}
+
+      {stage === "play" && (
+        <GameBoard
+          onFinish={(result) => {
+            setLastResult(result);
+            setStage("result");
+          }}
+        />
+      )}
+
+      {stage === "result" && (
+        <ResultScreen
+          result={lastResult}
+          onRestart={() => setStage("play")}
+          onBackToStart={() => setStage("start")}
+        />
+      )}
     </div>
   );
 }
-
-export default App;
