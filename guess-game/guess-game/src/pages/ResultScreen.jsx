@@ -10,7 +10,7 @@ export default function ResultScreen() {
     return null;
   }
 
-  const { isWin, winOn, correctImage } = lastResult;
+  const { isWin, winOn, correctImage,mode } = lastResult;
 
   let title = "";
   let description = "";
@@ -27,10 +27,13 @@ export default function ResultScreen() {
   }
 
   return (
+ 
     <div style={{ textAlign: "center", marginTop: "40px" }}>
       <h1>{title}</h1>
       <p>{description}</p>
-
+         <p>
+            Mod: <strong>{mode?.toUpperCase()}</strong>
+        </p>
       <img
         src={correctImage.url}
         alt="AI"

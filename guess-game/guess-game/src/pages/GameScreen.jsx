@@ -6,7 +6,7 @@ import { useGame } from "../context/GameContext";
 
 export default function GameScreen() {
   const navigate = useNavigate();
-  const { setLastResult } = useGame();
+  const { setLastResult, mode } = useGame();
 
   const [images, setImages] = useState([]);
   const [correctIndex, setCorrectIndex] = useState(null);
@@ -16,12 +16,14 @@ export default function GameScreen() {
   const [message, setMessage] = useState("");
   const [showHint, setShowHint] = useState(false);
 
+  const isHardMode = mode === "hard";
+
   // -----------------------------
   // Yeni turu hazırla
   // -----------------------------
   const setupNewRound = () => {
-    const aiImages = IMAGE_POOL.filter(img => img.type === "ai");
-    const realImages = IMAGE_POOL.filter(img => img.type === "real");
+    const aiImages = IMAGE_POOL.filter((img) => img.type === "ai");
+    const realImages = IMAGE_POOL.filter((img) => img.type === "real");
 
     const aiImage = aiImages[Math.floor(Math.random() * aiImages.length)];
     const shuffledReals = [...realImages].sort(() => Math.random() - 0.5);
@@ -30,10 +32,11 @@ export default function GameScreen() {
     let roundImages = [aiImage, ...selectedReals];
     roundImages = roundImages.sort(() => Math.random() - 0.5);
 
-    const aiIndex = roundImages.findIndex(img => img.type === "ai");
+    const aiIndex = roundImages.findIndex((img) => img.type === "ai");
 
     setImages(roundImages);
     setCorrectIndex(aiIndex);
+
     setStep("first");
     setFirstGuessIndex(null);
     setMessage("");
@@ -42,7 +45,7 @@ export default function GameScreen() {
 
   useEffect(() => {
     setupNewRound();
-  }, []);
+  }, [mode]); // ✅ mod değişince yeni tur hazırla
 
   // -----------------------------
   // Görsel tıklama
@@ -52,23 +55,36 @@ export default function GameScreen() {
     if (step === "first") {
       setFirstGuessIndex(index);
 
+      // ✅ Hard mod: tek şans => direkt sonuç
+      if (isHardMode) {
+        const isWin = index === correctIndex;
+        setLastResult({
+          isWin,
+          winOn: isWin ? "first" : "none",
+          correctImage: images[correctIndex],
+          mode,
+        });
+        navigate("/result");
+        return;
+      }
+
+      // ✅ Easy mod: iki şans
       if (index === correctIndex) {
-        // DOĞRU – ilk tahmin
         setLastResult({
           isWin: true,
           winOn: "first",
           correctImage: images[correctIndex],
+          mode,
         });
         navigate("/result");
       } else {
-        // YANLIŞ – ipucu + ikinci şans
         setStep("second");
         setShowHint(true);
         setMessage("Yanlış tahmin. İpucuna bak ve tekrar dene!");
       }
     }
 
-    // İkinci tahmin
+    // İkinci tahmin (sadece Easy modda var)
     else if (step === "second") {
       if (index === firstGuessIndex) {
         setMessage("Bu görseli zaten seçtin. Diğerlerinden birini seç.");
@@ -81,6 +97,7 @@ export default function GameScreen() {
         isWin,
         winOn: isWin ? "second" : "none",
         correctImage: images[correctIndex],
+        mode,
       });
 
       navigate("/result");
@@ -89,13 +106,13 @@ export default function GameScreen() {
 
   const aiImage = images[correctIndex];
 
-  // -----------------------------
-  // UI
-  // -----------------------------
   return (
     <div style={{ textAlign: "center", marginTop: "32px" }}>
       <h1>AI Guess Game</h1>
-      <p>3 görselden hangisi AI tarafından üretilmiştir?</p>
+      <p>
+        Mod: <strong>{mode.toUpperCase()}</strong>{" "}
+        {isHardMode ? "(Tek Şans)" : "(İpucu + 2 Şans)"}
+      </p>
 
       <div
         style={{
@@ -111,13 +128,14 @@ export default function GameScreen() {
             key={img.id}
             image={img}
             onClick={() => handleImageClick(index)}
-            isDisabled={step === "second" && index === firstGuessIndex}
+            isDisabled={!isHardMode && step === "second" && index === firstGuessIndex}
             isSelected={index === firstGuessIndex}
           />
         ))}
       </div>
 
-      {showHint && aiImage && (
+      {/* ✅ Hard modda ipucu yok */}
+      {!isHardMode && showHint && aiImage && (
         <div
           style={{
             marginTop: "24px",
@@ -132,21 +150,18 @@ export default function GameScreen() {
       )}
 
       {message && (
-        <p style={{ marginTop: "16px", fontStyle: "italic" }}>
-          {message}
-        </p>
+        <p style={{ marginTop: "16px", fontStyle: "italic" }}>{message}</p>
       )}
 
-      <button
-        onClick={setupNewRound}
-        style={{
-          marginTop: "24px",
-          padding: "8px 16px",
-          cursor: "pointer",
-        }}
-      >
-        Yeni Tur Başlat
-      </button>
+      <div style={{ marginTop: "24px", display: "flex", gap: "12px", justifyContent: "center" }}>
+        <button onClick={setupNewRound} style={{ padding: "8px 16px", cursor: "pointer" }}>
+          Yeni Tur
+        </button>
+
+        <button onClick={() => navigate("/")} style={{ padding: "8px 16px", cursor: "pointer" }}>
+          Mod Değiştir
+        </button>
+      </div>
     </div>
   );
 }

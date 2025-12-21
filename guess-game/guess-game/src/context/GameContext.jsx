@@ -5,8 +5,11 @@ const GameContext = createContext();
 export function GameProvider({ children }) {
   const [lastResult, setLastResult] = useState(null);
 
+  // ✅ Oyun modu: "easy" | "hard"
+  const [mode, setMode] = useState("easy");
+
   return (
-    <GameContext.Provider value={{ lastResult, setLastResult }}>
+    <GameContext.Provider value={{ lastResult, setLastResult, mode, setMode }}>
       {children}
     </GameContext.Provider>
   );
