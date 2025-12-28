@@ -17,6 +17,11 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+body {
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  min-height: 100vh;
+}
+
 
 a {
   font-weight: 500;
