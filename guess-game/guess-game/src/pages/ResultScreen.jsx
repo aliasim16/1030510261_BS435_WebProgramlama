@@ -11,7 +11,7 @@ export default function ResultScreen() {
     return null;
   }
 
-  const { isWin, winOn, correctImage,mode } = lastResult;
+  const { isWin, winOn, correctImage, mode } = lastResult;
 
   let title = "";
   let description = "";
@@ -28,25 +28,55 @@ export default function ResultScreen() {
   }
 
   return (
- 
     <PageWrapper>
-    <div style={{ textAlign: "center", marginTop: "40px" }}>
-      <h1>{title}</h1>
-      <p>{description}</p>
-         <p>
-            Mod: <strong>{mode?.toUpperCase()}</strong>
-        </p>
-      <img
-        src={correctImage.url}
-        alt="AI"
-        style={{ width: 260, border: "2px solid green" }}
-      />
+      <div
+        className="card shadow-lg p-5 text-center"
+        style={{ maxWidth: "600px", width: "100%", borderRadius: "20px" }}
+      >
+        {/* Başlık */}
+        <h1 className="fw-bold mb-2">{title}</h1>
+        <p className="text-muted">{description}</p>
 
-      <div style={{ marginTop: 20 }}>
-        <button onClick={() => navigate("/game")}>Yeni Tur</button>
-        <button onClick={() => navigate("/")}>Ana Sayfa</button>
+        {/* Mod etiketi */}
+        <span
+          className={`badge ${
+            mode === "hard" ? "bg-danger" : "bg-success"
+          } mb-4`}
+        >
+          Mod: {mode.toUpperCase()}
+        </span>
+
+        {/* ✅ BÜYÜTÜLMÜŞ GÖRSEL */}
+        <div className="d-flex justify-content-center my-4">
+          <img
+            src={correctImage.url}
+            alt="Doğru AI görseli"
+            className="img-fluid rounded shadow"
+            style={{
+              maxWidth: "420px",
+              width: "100%",
+              border: "4px solid #22c55e",
+            }}
+          />
+        </div>
+
+        {/* ✅ GÜNCEL BUTONLAR */}
+        <div className="d-flex justify-content-center gap-3 mt-3">
+          <button
+            className="btn btn-secondary px-4 hover:scale-105 transition"
+            onClick={() => navigate("/game")}
+          >
+            🔄 Yeni Tur
+          </button>
+
+          <button
+            className="btn btn-outline-dark px-4 hover:scale-105 transition"
+            onClick={() => navigate("/")}
+          >
+            🏠 Ana Sayfa
+          </button>
+        </div>
       </div>
-    </div>
     </PageWrapper>
   );
 }

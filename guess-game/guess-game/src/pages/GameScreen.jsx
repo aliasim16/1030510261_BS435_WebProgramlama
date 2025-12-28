@@ -18,17 +18,28 @@ export default function GameScreen() {
 
   const isHard = mode === "hard";
 
+  // =========================
+  // Yeni tur kur
+  // =========================
   const setupNewRound = () => {
-    const ai = IMAGE_POOL.filter(i => i.type === "ai");
-    const real = IMAGE_POOL.filter(i => i.type === "real");
+    const aiImages = IMAGE_POOL.filter(img => img.type === "ai");
+    const realImages = IMAGE_POOL.filter(img => img.type === "real");
 
-    const aiImg = ai[Math.floor(Math.random() * ai.length)];
-    const reals = [...real].sort(() => Math.random() - 0.5).slice(0, 2);
+    const aiImg =
+      aiImages[Math.floor(Math.random() * aiImages.length)];
 
-    const round = [aiImg, ...reals].sort(() => Math.random() - 0.5);
+    const reals = [...realImages]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 2);
 
-    setImages(round);
-    setCorrectIndex(round.findIndex(i => i.type === "ai"));
+    const roundImages = [aiImg, ...reals].sort(
+      () => Math.random() - 0.5
+    );
+
+    setImages(roundImages);
+    setCorrectIndex(
+      roundImages.findIndex(img => img.type === "ai")
+    );
     setStep("first");
     setFirstGuessIndex(null);
     setShowHint(false);
@@ -39,10 +50,14 @@ export default function GameScreen() {
     setupNewRound();
   }, [mode]);
 
+  // =========================
+  // Tıklama logic
+  // =========================
   const handleClick = (index) => {
     if (step === "first") {
       setFirstGuessIndex(index);
 
+      // HARD: tek şans
       if (isHard) {
         setLastResult({
           isWin: index === correctIndex,
@@ -54,6 +69,7 @@ export default function GameScreen() {
         return;
       }
 
+      // EASY: ilk tahmin
       if (index === correctIndex) {
         setLastResult({
           isWin: true,
@@ -68,6 +84,7 @@ export default function GameScreen() {
         setMessage("Yanlış tahmin! İpucuna dikkat et.");
       }
     } else {
+      // EASY: ikinci tahmin
       if (index === firstGuessIndex) return;
 
       setLastResult({
@@ -82,44 +99,69 @@ export default function GameScreen() {
 
   return (
     <PageWrapper>
-    <div className="container text-center mt-4">
-      <h2 className="fw-bold">
-        AI Guess Game{" "}
-        <span className={`badge ${isHard ? "bg-danger" : "bg-success"}`}>
-          {mode.toUpperCase()}
-        </span>
-      </h2>
+      <div className="container text-center mt-4">
+        {/* Başlık */}
+        <h2 className="fw-bold mb-4">
+          AI Guess Game{" "}
+          <span
+            className={`badge ${
+              isHard ? "bg-danger" : "bg-success"
+            } fs-6`}
+          >
+            {mode.toUpperCase()}
+          </span>
+        </h2>
 
-      <div className="row justify-content-center mt-4 g-4">
-        {images.map((img, idx) => (
-          <div className="col-md-4" key={img.id}>
-            <ImageOption
-              image={img}
-              onClick={() => handleClick(idx)}
-              isDisabled={!isHard && step === "second" && idx === firstGuessIndex}
-              isSelected={idx === firstGuessIndex}
-            />
-          </div>
-        ))}
-      </div>
-
-      {!isHard && showHint && (
-        <div className="alert alert-info mt-4">
-          <strong>İpucu:</strong> {images[correctIndex]?.hint}
+        {/* Görseller */}
+        <div className="row justify-content-center mt-5 g-5">
+          {images.map((img, idx) => (
+            <div
+              className="col-lg-4 col-md-6 d-flex justify-content-center"
+              key={img.id}
+            >
+              <ImageOption
+                image={img}
+                onClick={() => handleClick(idx)}
+                isDisabled={
+                  !isHard &&
+                  step === "second" &&
+                  idx === firstGuessIndex
+                }
+                isSelected={idx === firstGuessIndex}
+              />
+            </div>
+          ))}
         </div>
-      )}
 
-      {message && <p className="text-muted mt-2">{message}</p>}
+        {/* İpucu */}
+        {!isHard && showHint && (
+          <div className="alert alert-info mt-4">
+            <strong>İpucu:</strong>{" "}
+            {images[correctIndex]?.hint}
+          </div>
+        )}
 
-      <div className="d-flex justify-content-center gap-3 mt-4">
-        <button className="btn btn-secondary" onClick={setupNewRound}>
-          Yeni Tur
-        </button>
-        <button className="btn btn-outline-dark" onClick={() => navigate("/")}>
-          Mod Değiştir
-        </button>
+        {/* Mesaj */}
+        {message && (
+          <p className="text-muted mt-2">{message}</p>
+        )}
+
+        {/* Alt butonlar */}
+        <div className="d-flex justify-content-center gap-3 mt-5">
+          <button
+            className="btn btn-secondary px-4"
+            onClick={setupNewRound}
+          >
+            🔄 Yeni Tur
+          </button>
+          <button
+            className="btn btn-outline-dark px-4"
+            onClick={() => navigate("/")}
+          >
+            🎮 Mod Değiştir
+          </button>
+        </div>
       </div>
-    </div>
     </PageWrapper>
   );
 }
