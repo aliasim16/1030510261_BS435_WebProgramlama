@@ -5,52 +5,44 @@ export default function StartScreen() {
   const navigate = useNavigate();
   const { mode, setMode } = useGame();
 
-  const handleStart = () => {
-    navigate("/game");
-  };
-
   return (
-    <div style={{ textAlign: "center", marginTop: "40px" }}>
-      <h1>AI Guess Game</h1>
-      <p>3 görsel arasından AI tarafından üretileni bulmaya çalış!</p>
+    <div className="container text-center mt-5">
+      <h1 className="fw-bold mb-3">AI Guess Game</h1>
+      <p className="text-muted">
+        3 görsel arasından AI tarafından üretileni bul!
+      </p>
 
-      <div style={{ marginTop: "24px" }}>
-        <h3>Oyun Modu Seç</h3>
+      <div className="mt-4">
+        <h5 className="mb-3">Oyun Modu</h5>
 
-        <div style={{ display: "inline-flex", gap: "12px", marginTop: "12px" }}>
+        <div className="d-flex justify-content-center gap-3">
           <button
+            className={`btn ${
+              mode === "easy" ? "btn-success" : "btn-outline-success"
+            }`}
             onClick={() => setMode("easy")}
-            style={{
-              padding: "10px 16px",
-              borderRadius: "8px",
-              border: mode === "easy" ? "2px solid #4CAF50" : "1px solid #ccc",
-              cursor: "pointer",
-            }}
           >
-            Easy (İpucu + 2 Şans)
+            Easy
           </button>
 
           <button
+            className={`btn ${
+              mode === "hard" ? "btn-danger" : "btn-outline-danger"
+            }`}
             onClick={() => setMode("hard")}
-            style={{
-              padding: "10px 16px",
-              borderRadius: "8px",
-              border: mode === "hard" ? "2px solid #4CAF50" : "1px solid #ccc",
-              cursor: "pointer",
-            }}
           >
-            Hard (Tek Şans)
+            Hard
           </button>
         </div>
 
-        <p style={{ marginTop: "12px", fontStyle: "italic" }}>
+        <p className="mt-3 text-secondary">
           Seçili mod: <strong>{mode.toUpperCase()}</strong>
         </p>
       </div>
 
       <button
-        onClick={handleStart}
-        style={{ padding: "10px 20px", marginTop: "24px" }}
+        className="btn btn-primary btn-lg mt-4 px-5"
+        onClick={() => navigate("/game")}
       >
         Başla
       </button>

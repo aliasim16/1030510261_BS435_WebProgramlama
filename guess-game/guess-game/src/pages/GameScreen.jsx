@@ -10,57 +10,42 @@ export default function GameScreen() {
 
   const [images, setImages] = useState([]);
   const [correctIndex, setCorrectIndex] = useState(null);
-
-  const [step, setStep] = useState("first"); // "first" | "second"
+  const [step, setStep] = useState("first");
   const [firstGuessIndex, setFirstGuessIndex] = useState(null);
   const [message, setMessage] = useState("");
   const [showHint, setShowHint] = useState(false);
 
-  const isHardMode = mode === "hard";
+  const isHard = mode === "hard";
 
-  // -----------------------------
-  // Yeni turu hazırla
-  // -----------------------------
   const setupNewRound = () => {
-    const aiImages = IMAGE_POOL.filter((img) => img.type === "ai");
-    const realImages = IMAGE_POOL.filter((img) => img.type === "real");
+    const ai = IMAGE_POOL.filter(i => i.type === "ai");
+    const real = IMAGE_POOL.filter(i => i.type === "real");
 
-    const aiImage = aiImages[Math.floor(Math.random() * aiImages.length)];
-    const shuffledReals = [...realImages].sort(() => Math.random() - 0.5);
-    const selectedReals = shuffledReals.slice(0, 2);
+    const aiImg = ai[Math.floor(Math.random() * ai.length)];
+    const reals = [...real].sort(() => Math.random() - 0.5).slice(0, 2);
 
-    let roundImages = [aiImage, ...selectedReals];
-    roundImages = roundImages.sort(() => Math.random() - 0.5);
+    const round = [aiImg, ...reals].sort(() => Math.random() - 0.5);
 
-    const aiIndex = roundImages.findIndex((img) => img.type === "ai");
-
-    setImages(roundImages);
-    setCorrectIndex(aiIndex);
-
+    setImages(round);
+    setCorrectIndex(round.findIndex(i => i.type === "ai"));
     setStep("first");
     setFirstGuessIndex(null);
-    setMessage("");
     setShowHint(false);
+    setMessage("");
   };
 
   useEffect(() => {
     setupNewRound();
-  }, [mode]); // ✅ mod değişince yeni tur hazırla
+  }, [mode]);
 
-  // -----------------------------
-  // Görsel tıklama
-  // -----------------------------
-  const handleImageClick = (index) => {
-    // İlk tahmin
+  const handleClick = (index) => {
     if (step === "first") {
       setFirstGuessIndex(index);
 
-      // ✅ Hard mod: tek şans => direkt sonuç
-      if (isHardMode) {
-        const isWin = index === correctIndex;
+      if (isHard) {
         setLastResult({
-          isWin,
-          winOn: isWin ? "first" : "none",
+          isWin: index === correctIndex,
+          winOn: index === correctIndex ? "first" : "none",
           correctImage: images[correctIndex],
           mode,
         });
@@ -68,7 +53,6 @@ export default function GameScreen() {
         return;
       }
 
-      // ✅ Easy mod: iki şans
       if (index === correctIndex) {
         setLastResult({
           isWin: true,
@@ -80,85 +64,56 @@ export default function GameScreen() {
       } else {
         setStep("second");
         setShowHint(true);
-        setMessage("Yanlış tahmin. İpucuna bak ve tekrar dene!");
+        setMessage("Yanlış tahmin! İpucuna dikkat et.");
       }
-    }
-
-    // İkinci tahmin (sadece Easy modda var)
-    else if (step === "second") {
-      if (index === firstGuessIndex) {
-        setMessage("Bu görseli zaten seçtin. Diğerlerinden birini seç.");
-        return;
-      }
-
-      const isWin = index === correctIndex;
+    } else {
+      if (index === firstGuessIndex) return;
 
       setLastResult({
-        isWin,
-        winOn: isWin ? "second" : "none",
+        isWin: index === correctIndex,
+        winOn: index === correctIndex ? "second" : "none",
         correctImage: images[correctIndex],
         mode,
       });
-
       navigate("/result");
     }
   };
 
-  const aiImage = images[correctIndex];
-
   return (
-    <div style={{ textAlign: "center", marginTop: "32px" }}>
-      <h1>AI Guess Game</h1>
-      <p>
-        Mod: <strong>{mode.toUpperCase()}</strong>{" "}
-        {isHardMode ? "(Tek Şans)" : "(İpucu + 2 Şans)"}
-      </p>
+    <div className="container text-center mt-4">
+      <h2 className="fw-bold">
+        AI Guess Game{" "}
+        <span className={`badge ${isHard ? "bg-danger" : "bg-success"}`}>
+          {mode.toUpperCase()}
+        </span>
+      </h2>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-          marginTop: "24px",
-        }}
-      >
-        {images.map((img, index) => (
-          <ImageOption
-            key={img.id}
-            image={img}
-            onClick={() => handleImageClick(index)}
-            isDisabled={!isHardMode && step === "second" && index === firstGuessIndex}
-            isSelected={index === firstGuessIndex}
-          />
+      <div className="row justify-content-center mt-4 g-4">
+        {images.map((img, idx) => (
+          <div className="col-md-4" key={img.id}>
+            <ImageOption
+              image={img}
+              onClick={() => handleClick(idx)}
+              isDisabled={!isHard && step === "second" && idx === firstGuessIndex}
+              isSelected={idx === firstGuessIndex}
+            />
+          </div>
         ))}
       </div>
 
-      {/* ✅ Hard modda ipucu yok */}
-      {!isHardMode && showHint && aiImage && (
-        <div
-          style={{
-            marginTop: "24px",
-            padding: "12px",
-            backgroundColor: "#f2f2f2",
-            display: "inline-block",
-            borderRadius: "8px",
-          }}
-        >
-          <strong>İpucu:</strong> {aiImage.hint}
+      {!isHard && showHint && (
+        <div className="alert alert-info mt-4">
+          <strong>İpucu:</strong> {images[correctIndex]?.hint}
         </div>
       )}
 
-      {message && (
-        <p style={{ marginTop: "16px", fontStyle: "italic" }}>{message}</p>
-      )}
+      {message && <p className="text-muted mt-2">{message}</p>}
 
-      <div style={{ marginTop: "24px", display: "flex", gap: "12px", justifyContent: "center" }}>
-        <button onClick={setupNewRound} style={{ padding: "8px 16px", cursor: "pointer" }}>
+      <div className="d-flex justify-content-center gap-3 mt-4">
+        <button className="btn btn-secondary" onClick={setupNewRound}>
           Yeni Tur
         </button>
-
-        <button onClick={() => navigate("/")} style={{ padding: "8px 16px", cursor: "pointer" }}>
+        <button className="btn btn-outline-dark" onClick={() => navigate("/")}>
           Mod Değiştir
         </button>
       </div>
