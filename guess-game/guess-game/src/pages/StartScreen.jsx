@@ -1,11 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
+import PageWrapper from "../components/PageWrapper";
+
 
 export default function StartScreen() {
   const navigate = useNavigate();
   const { mode, setMode } = useGame();
 
   return (
+    <PageWrapper>
     <div className="container d-flex justify-content-center align-items-center min-vh-100">
       <div
         className="card shadow-lg p-5 text-center"
@@ -68,5 +71,6 @@ export default function StartScreen() {
         </p>
       </div>
     </div>
+    </PageWrapper>
   );
 }

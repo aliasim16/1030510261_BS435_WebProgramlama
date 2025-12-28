@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { IMAGE_POOL } from "../data/images";
 import ImageOption from "../components/ImageOption";
 import { useGame } from "../context/GameContext";
+import PageWrapper from "../components/PageWrapper";
 
 export default function GameScreen() {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ export default function GameScreen() {
   };
 
   return (
+    <PageWrapper>
     <div className="container text-center mt-4">
       <h2 className="fw-bold">
         AI Guess Game{" "}
@@ -118,5 +120,6 @@ export default function GameScreen() {
         </button>
       </div>
     </div>
+    </PageWrapper>
   );
 }

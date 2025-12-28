@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useGame } from "../context/GameContext";
+import PageWrapper from "../components/PageWrapper";
 
 export default function ResultScreen() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function ResultScreen() {
 
   return (
  
+    <PageWrapper>
     <div style={{ textAlign: "center", marginTop: "40px" }}>
       <h1>{title}</h1>
       <p>{description}</p>
@@ -45,5 +47,6 @@ export default function ResultScreen() {
         <button onClick={() => navigate("/")}>Ana Sayfa</button>
       </div>
     </div>
+    </PageWrapper>
   );
 }
