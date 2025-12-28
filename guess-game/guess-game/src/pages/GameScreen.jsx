@@ -7,7 +7,17 @@ import PageWrapper from "../components/PageWrapper";
 
 export default function GameScreen() {
   const navigate = useNavigate();
-  const { setLastResult, mode } = useGame();
+
+  const {
+    setLastResult,
+    mode,
+    score,
+    setScore,
+    totalRounds,
+    setTotalRounds,
+    correctCount,
+    setCorrectCount,
+  } = useGame();
 
   const [images, setImages] = useState([]);
   const [correctIndex, setCorrectIndex] = useState(null);
@@ -15,50 +25,77 @@ export default function GameScreen() {
   const [firstGuessIndex, setFirstGuessIndex] = useState(null);
   const [message, setMessage] = useState("");
   const [showHint, setShowHint] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(
+    mode === "hard" ? 8 : 15
+  );
 
   const isHard = mode === "hard";
 
-  // =========================
-  // Yeni tur kur
-  // =========================
+  // ======================
+  // Yeni tur ayarla
+  // ======================
   const setupNewRound = () => {
-    const aiImages = IMAGE_POOL.filter(img => img.type === "ai");
-    const realImages = IMAGE_POOL.filter(img => img.type === "real");
+    const ai = IMAGE_POOL.filter(i => i.type === "ai");
+    const real = IMAGE_POOL.filter(i => i.type === "real");
 
-    const aiImg =
-      aiImages[Math.floor(Math.random() * aiImages.length)];
+    const aiImg = ai[Math.floor(Math.random() * ai.length)];
+    const reals = [...real].sort(() => Math.random() - 0.5).slice(0, 2);
 
-    const reals = [...realImages]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 2);
+    const round = [aiImg, ...reals].sort(() => Math.random() - 0.5);
 
-    const roundImages = [aiImg, ...reals].sort(
-      () => Math.random() - 0.5
-    );
-
-    setImages(roundImages);
-    setCorrectIndex(
-      roundImages.findIndex(img => img.type === "ai")
-    );
+    setImages(round);
+    setCorrectIndex(round.findIndex(i => i.type === "ai"));
     setStep("first");
     setFirstGuessIndex(null);
     setShowHint(false);
     setMessage("");
+    setTimeLeft(mode === "hard" ? 8 : 15);
   };
 
   useEffect(() => {
     setupNewRound();
   }, [mode]);
 
-  // =========================
-  // Tıklama logic
-  // =========================
+  // ======================
+  // TIMER
+  // ======================
+  useEffect(() => {
+    if (timeLeft <= 0 && correctIndex !== null) {
+      setLastResult({
+        isWin: false,
+        winOn: "none",
+        correctImage: images[correctIndex],
+        mode,
+      });
+
+      setTotalRounds(totalRounds + 1);
+      navigate("/result");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setTimeLeft(timeLeft - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [timeLeft]);
+
+  // ======================
+  // Tıklama mantığı
+  // ======================
   const handleClick = (index) => {
     if (step === "first") {
       setFirstGuessIndex(index);
 
-      // HARD: tek şans
+      // HARD MODE
       if (isHard) {
+        if (index === correctIndex) {
+          setScore(score + 15);
+          setCorrectCount(correctCount + 1);
+        }
+
+        setTotalRounds(totalRounds + 1);
+
         setLastResult({
           isWin: index === correctIndex,
           winOn: index === correctIndex ? "first" : "none",
@@ -69,8 +106,12 @@ export default function GameScreen() {
         return;
       }
 
-      // EASY: ilk tahmin
+      // EASY MODE - ilk tahmin
       if (index === correctIndex) {
+        setScore(score + 10);
+        setCorrectCount(correctCount + 1);
+        setTotalRounds(totalRounds + 1);
+
         setLastResult({
           isWin: true,
           winOn: "first",
@@ -84,8 +125,15 @@ export default function GameScreen() {
         setMessage("Yanlış tahmin! İpucuna dikkat et.");
       }
     } else {
-      // EASY: ikinci tahmin
+      // EASY MODE - ikinci tahmin
       if (index === firstGuessIndex) return;
+
+      if (index === correctIndex) {
+        setScore(score + 5);
+        setCorrectCount(correctCount + 1);
+      }
+
+      setTotalRounds(totalRounds + 1);
 
       setLastResult({
         isWin: index === correctIndex,
@@ -101,16 +149,35 @@ export default function GameScreen() {
     <PageWrapper>
       <div className="container text-center mt-4">
         {/* Başlık */}
-        <h2 className="fw-bold mb-4">
+        <h2 className="fw-bold mb-2">
           AI Guess Game{" "}
-          <span
-            className={`badge ${
-              isHard ? "bg-danger" : "bg-success"
-            } fs-6`}
-          >
+          <span className={`badge ${isHard ? "bg-danger" : "bg-success"}`}>
             {mode.toUpperCase()}
           </span>
         </h2>
+
+        {/* Skor & İstatistik */}
+        <div className="d-flex justify-content-center gap-4 mb-3">
+          <span className="badge bg-primary fs-6">Skor: {score}</span>
+          <span className="badge bg-secondary fs-6">Tur: {totalRounds}</span>
+          <span className="badge bg-success fs-6">
+            Başarı:{" "}
+            {totalRounds === 0
+              ? "0%"
+              : Math.round((correctCount / totalRounds) * 100) + "%"}
+          </span>
+        </div>
+
+        {/* Timer */}
+        <div className="mb-3">
+          <span
+            className={`badge ${
+              timeLeft <= 3 ? "bg-danger" : "bg-warning"
+            } fs-6`}
+          >
+            ⏱️ {timeLeft} sn
+          </span>
+        </div>
 
         {/* Görseller */}
         <div className="row justify-content-center mt-5 g-5">
@@ -123,9 +190,7 @@ export default function GameScreen() {
                 image={img}
                 onClick={() => handleClick(idx)}
                 isDisabled={
-                  !isHard &&
-                  step === "second" &&
-                  idx === firstGuessIndex
+                  !isHard && step === "second" && idx === firstGuessIndex
                 }
                 isSelected={idx === firstGuessIndex}
               />
@@ -136,22 +201,16 @@ export default function GameScreen() {
         {/* İpucu */}
         {!isHard && showHint && (
           <div className="alert alert-info mt-4">
-            <strong>İpucu:</strong>{" "}
-            {images[correctIndex]?.hint}
+            <strong>İpucu:</strong> {images[correctIndex]?.hint}
           </div>
         )}
 
         {/* Mesaj */}
-        {message && (
-          <p className="text-muted mt-2">{message}</p>
-        )}
+        {message && <p className="text-muted mt-2">{message}</p>}
 
         {/* Alt butonlar */}
         <div className="d-flex justify-content-center gap-3 mt-5">
-          <button
-            className="btn btn-secondary px-4"
-            onClick={setupNewRound}
-          >
+          <button className="btn btn-secondary px-4" onClick={setupNewRound}>
             🔄 Yeni Tur
           </button>
           <button
