@@ -46,7 +46,7 @@ export default function ResultScreen() {
           Mod: {mode.toUpperCase()}
         </span>
 
-        {/* ✅ BÜYÜTÜLMÜŞ GÖRSEL */}
+        {/*  BÜYÜTÜLMÜŞ GÖRSEL */}
         <div className="d-flex justify-content-center my-4">
           <img
             src={correctImage.url}
@@ -60,7 +60,7 @@ export default function ResultScreen() {
           />
         </div>
 
-        {/* ✅ GÜNCEL BUTONLAR */}
+        {/*  GÜNCEL BUTONLAR */}
         <div className="d-flex justify-content-center gap-3 mt-3">
           <button
             className="btn btn-secondary px-4 hover:scale-105 transition"

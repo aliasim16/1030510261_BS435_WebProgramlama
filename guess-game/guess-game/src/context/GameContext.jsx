@@ -6,7 +6,7 @@ export function GameProvider({ children }) {
   const [lastResult, setLastResult] = useState(null);
   const [mode, setMode] = useState("easy");
 
-  // 🔢 SCORE & STATS
+  // SCORE & STATS
   const [score, setScore] = useState(0);
   const [totalRounds, setTotalRounds] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);

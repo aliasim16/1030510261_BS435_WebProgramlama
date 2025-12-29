@@ -1,14 +1,10 @@
-// ===============================
-// Vite dynamic image loader
-// ===============================
 
-// AI images (.png)
 const aiImages = import.meta.glob(
   "../images/ai_images/*.png",
   { eager: true }
 );
 
-// Real images (.jpg)
+
 const realImages = import.meta.glob(
   "../images/real_images/*.jpg",
   { eager: true }
